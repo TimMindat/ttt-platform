@@ -5,7 +5,7 @@ import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import AuthButton from '../../components/AuthButton/AuthButton';
 import { db, auth } from "../../firebase/config";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 // Data for navigation items
 const navItems = [
@@ -763,6 +763,10 @@ export const MainHomepage = (): JSX.Element => {
                   viewport={{ once: true }}
                   transition={{ delay: 0.1 * story.id, duration: 0.5 }}
                 >
+                  <Link 
+                    to={`/blog/${story.id}`}
+                    className="block transform transition-transform duration-300 hover:scale-[1.02]"
+                  >
                   <motion.div
                     className="relative w-full max-w-[395px] mx-auto cursor-pointer"
                     onHoverStart={() => setHoveredStory(story.id)}
@@ -853,6 +857,7 @@ export const MainHomepage = (): JSX.Element => {
                       </CardContent>
                     </Card>
                   </motion.div>
+                  </Link>
                 </motion.div>
               ))}
             </div>

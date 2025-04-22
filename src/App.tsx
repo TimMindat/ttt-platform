@@ -4,6 +4,7 @@ import { MainHomepage } from "./screens/MainHomepage/MainHomepage";
 import BoatProgram from "./screens/ProgramPages/BoatProgram";
 import CoastProgram from "./screens/ProgramPages/CoastProgram";
 import AzureProgram from "./screens/ProgramPages/AzureProgram";
+import BlogPost from "./screens/BlogPost/BlogPost";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/programs/boat" element={<BoatProgram />} />
         <Route path="/programs/coast" element={<CoastProgram />} />
         <Route path="/programs/azure" element={<AzureProgram />} />
+        <Route path="/blog/:id" element={<BlogPost />} />
       </Routes>
     </Router>
   );
