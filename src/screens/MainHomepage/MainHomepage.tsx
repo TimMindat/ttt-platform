@@ -18,13 +18,13 @@ const navItems = [
 
 // Data for suggested content
 const suggestedContent = [
-  { id: 1, image: "/card-1.png" },
-  { id: 2, image: "/card-2.png" },
-  { id: 3, image: "/card-3.png" },
-  { id: 4, image: "/card-4.png" },
-  { id: 5, image: "/card-5.png" },
-  { id: 6, image: "/card-6.png" },
-  { id: 7, image: "/card-7.png" },
+  { id: 1, image: "/card-1.png", title: "Gazan Kids: Voices Beneath the Dust" },
+  { id: 2, image: "/card-2.png", title: "Creation and Catastrophe: Stories of Resilience" },
+  { id: 3, image: "/card-3.png", title: "1984: Al Nakba" },
+  { id: 4, image: "/card-4.png", title: "Reflections: Land and Identity" },
+  { id: 5, image: "https://arabcenterdc.org/wp-content/uploads/2018/05/nakba-man-camp-800-1.png", title: "Shoreline Narratives: Community Voices" },
+  { id: 6, image: "https://media.licdn.com/dms/image/v2/D4E12AQH1X94iNSeLvA/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1683277394865?e=2147483647&v=beta&t=m-_gZZDT4tw3qkUXc-2oIe_C6-etZYqRInkZj4V4Et0", title: "Dialogues: Connecting Cultures" },
+  { id: 7, image: "https://karyawan.sg/wp-content/uploads/2021/06/Social-Media-Social-Change.png", title: "Waves of Change: Environmental Stories" },
 ];
 
 // Data for featured programs
@@ -82,12 +82,50 @@ export const MainHomepage = (): JSX.Element => {
   const [activeSection, setActiveSection] = useState<string>("hero");
   const [language, setLanguage] = useState<string>("en");
   const [showLanguageMenu, setShowLanguageMenu] = useState<boolean>(false);
+  const [currentSlide, setCurrentSlide] = useState<number>(0);
+  const [isManualChange, setIsManualChange] = useState<boolean>(false);
   const languageMenuRef = useRef<HTMLDivElement>(null);
   const sectionRefs = {
     hero: useRef<HTMLDivElement>(null),
     programs: useRef<HTMLDivElement>(null),
     stories: useRef<HTMLDivElement>(null),
     share: useRef<HTMLDivElement>(null),
+  };
+  
+  // Auto-rotate slides
+  useEffect(() => {
+    let slideInterval: NodeJS.Timeout;
+    
+    if (!isManualChange) {
+      slideInterval = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % suggestedContent.length);
+      }, 8000); // Change slide every 8 seconds
+    }
+    
+    return () => {
+      if (slideInterval) clearInterval(slideInterval);
+    };
+  }, [isManualChange]);
+  
+  // Reset manual change flag after some time
+  useEffect(() => {
+    let manualTimeout: NodeJS.Timeout;
+    
+    if (isManualChange) {
+      manualTimeout = setTimeout(() => {
+        setIsManualChange(false);
+      }, 15000); // Resume auto-rotation after 15 seconds of inactivity
+    }
+    
+    return () => {
+      if (manualTimeout) clearTimeout(manualTimeout);
+    };
+  }, [isManualChange, currentSlide]);
+  
+  // Handle manual slide change
+  const changeSlide = (index: number) => {
+    setCurrentSlide(index);
+    setIsManualChange(true);
   };
   
   // Enhanced scroll animation hooks
@@ -289,21 +327,42 @@ export const MainHomepage = (): JSX.Element => {
               </motion.button>
               
             </div>
+            
+            {/* Slide indicators */}
+            <div className="flex justify-center mt-4 space-x-2">
+              {suggestedContent.slice(0, 4).map((_, index) => (
+                <motion.button
+                  key={index}
+                  className={`w-2 h-2 rounded-full ${
+                    currentSlide === index ? "bg-white" : "bg-gray-500"
+                  }`}
+                  onClick={() => changeSlide(index)}
+                  whileHover={{ scale: 1.5 }}
+                  whileTap={{ scale: 0.9 }}
+                  animate={currentSlide === index ? { scale: [1, 1.2, 1] } : {}}
+                  transition={{ duration: 0.5 }}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </motion.header>
 
-      {/* Hero Section with enhanced parallax effect - increased height */}
-      {/* Hero Section - removed mt-16 since header is no longer fixed */}
+      {/* Hero Section with dynamic background and content */}
       <motion.section
         ref={sectionRefs.hero}
         className="relative w-full h-[900px] bg-cover bg-center"
         style={{ 
-          backgroundImage: "url('/img.png')",
+          backgroundImage: `url(${suggestedContent[currentSlide].image})`,
           scale: heroScale,
           opacity: heroOpacity,
           filter: heroBlur
         }}
+        key={currentSlide} // Add key to force re-render on slide change
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 1 }}
       >
         <motion.div 
           className="absolute inset-0"
@@ -314,35 +373,43 @@ export const MainHomepage = (): JSX.Element => {
 
         <div className="relative h-full flex flex-col justify-end">
           {/* Featured Story with enhanced animations - adjusted positioning */}
-          <motion.div
-            className="absolute top-[250px] left-[5%] md:left-[145px] flex flex-col items-start gap-[27.65px]"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <motion.img
-              className="w-[76.59px] h-[97.87px] cursor-pointer"
-              alt="Play button"
-              src="/ic-play.svg"
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              whileTap={{ scale: 0.9 }}
-              animate={{ 
-                boxShadow: ["0px 0px 0px rgba(255,255,255,0)", "0px 0px 20px rgba(255,255,255,0.3)", "0px 0px 0px rgba(255,255,255,0)"],
-              }}
-              transition={{ 
-                boxShadow: { repeat: Infinity, duration: 2 },
-              }}
-            />
-            <motion.h1 
-              className="text-3xl md:text-[55.3px] leading-tight md:leading-[66.4px] text-white"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSlide}
+              className="absolute top-[250px] left-[5%] md:left-[145px] flex flex-col items-start gap-[27.65px]"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 50 }}
+              transition={{ duration: 0.8 }}
             >
-              <span className="font-bold">Gazan Kids </span>
-              <span className="font-normal">Voices Beneath the Dust</span>
-            </motion.h1>
-          </motion.div>
+              <motion.img
+                className="w-[76.59px] h-[97.87px] cursor-pointer"
+                alt="Play button"
+                src="/ic-play.svg"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                animate={{ 
+                  boxShadow: ["0px 0px 0px rgba(255,255,255,0)", "0px 0px 20px rgba(255,255,255,0.3)", "0px 0px 0px rgba(255,255,255,0)"],
+                }}
+                transition={{ 
+                  boxShadow: { repeat: Infinity, duration: 2 },
+                }}
+              />
+              <motion.h1 
+                className="text-3xl md:text-[55.3px] leading-tight md:leading-[66.4px] text-white"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.8 }}
+              >
+                {suggestedContent[currentSlide].title.split(':').map((part, index) => (
+                  <span key={index} className={index === 0 ? "font-bold" : "font-normal"}>
+                    {index > 0 && ": "}
+                    {part}
+                  </span>
+                ))}
+              </motion.h1>
+            </motion.div>
+          </AnimatePresence>
 
           {/* Stories from the Sea - adjusted positioning */}
           <div className="container mx-auto px-4 md:px-20 pb-32">
@@ -378,7 +445,9 @@ export const MainHomepage = (): JSX.Element => {
               {suggestedContent.slice(0, 4).map((item, index) => (
                 <motion.div
                   key={item.id}
-                  className="flex-shrink-0 w-[280px] md:w-[389px] h-[160px] rounded-[5px] bg-cover bg-center cursor-pointer"
+                  className={`flex-shrink-0 w-[280px] md:w-[389px] h-[160px] rounded-[5px] bg-cover bg-center cursor-pointer ${
+                    currentSlide === index ? "ring-2 ring-white" : ""
+                  }`}
                   style={{ backgroundImage: `url(${item.image})` }}
                   initial={{ opacity: 0, x: 50 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -389,6 +458,7 @@ export const MainHomepage = (): JSX.Element => {
                     zIndex: 10
                   }}
                   whileTap={{ scale: 0.98 }}
+                  onClick={() => changeSlide(index)}
                 />
               ))}
               <motion.div 
@@ -397,6 +467,23 @@ export const MainHomepage = (): JSX.Element => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
               />
+            </div>
+            
+            {/* Slide indicators */}
+            <div className="flex justify-center mt-4 space-x-2">
+              {suggestedContent.slice(0, 4).map((_, index) => (
+                <motion.button
+                  key={index}
+                  className={`w-2 h-2 rounded-full ${
+                    currentSlide === index ? "bg-white" : "bg-gray-500"
+                  }`}
+                  onClick={() => changeSlide(index)}
+                  whileHover={{ scale: 1.5 }}
+                  whileTap={{ scale: 0.9 }}
+                  animate={currentSlide === index ? { scale: [1, 1.2, 1] } : {}}
+                  transition={{ duration: 0.5 }}
+                />
+              ))}
             </div>
           </div>
         </div>
