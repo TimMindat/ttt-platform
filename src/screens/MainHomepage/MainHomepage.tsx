@@ -5,7 +5,6 @@ import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import AuthButton from '../../components/AuthButton/AuthButton';
 import { db, auth } from "../../firebase/config";
-import { useNavigate } from "react-router-dom";
 
 // Data for navigation items
 const navItems = [
@@ -75,7 +74,6 @@ const featuredStories = [
 ];
 
 export const MainHomepage = (): JSX.Element => {
-  const navigate = useNavigate();
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [hoveredProgram, setHoveredProgram] = useState<number | null>(null);
   const [hoveredStory, setHoveredStory] = useState<number | null>(null);
@@ -168,12 +166,6 @@ export const MainHomepage = (): JSX.Element => {
     setLanguage(lang);
     setShowLanguageMenu(false);
     // Here you would implement actual language change logic
-  };
-  
-  // Navigate to program page
-  const navigateToProgram = (programTitle: string) => {
-    const route = programTitle.toLowerCase();
-    navigate(`/programs/${route}`);
   };
 
   return (
@@ -501,8 +493,6 @@ export const MainHomepage = (): JSX.Element => {
                   onHoverStart={() => setHoveredProgram(program.id)}
                   onHoverEnd={() => setHoveredProgram(null)}
                   whileHover={{ y: -10 }}
-                  onClick={() => navigateToProgram(program.title)}
-                  style={{ cursor: 'pointer' }}
                 >
                   <Card className="overflow-hidden bg-[#1a1a1a] border-0 shadow-xl h-full aspect-[3/4] mx-auto max-w-[280px]">
                     <motion.div
