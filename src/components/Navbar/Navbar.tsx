@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import { CanaaniteIcons } from "../icons/CanaaniteIcons";
+import { Menu, X, Globe } from "lucide-react";
 
 // Updated navigation items - removed Symbols
 const navItems = [
@@ -65,6 +66,9 @@ const Navbar: React.FC = () => {
     setShowLanguageMenu(false);
   };
   
+  // Add state for mobile menu
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
   return (
     <motion.header 
       className="fixed top-0 left-0 w-full z-50"
@@ -104,6 +108,17 @@ const Navbar: React.FC = () => {
       
       <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
         <div className="flex items-center h-16 md:h-20">
+          {/* Mobile menu button - only visible on mobile */}
+          <div className="md:hidden flex items-center">
+            <button 
+              className="flex items-center justify-center p-2 rounded-md text-white hover:bg-white/10 transition-colors"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle mobile menu"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+          
           {/* Left navigation with enhanced exit animation */}
           <motion.nav 
             className="flex-1 hidden md:flex items-center space-x-6 justify-start pl-4"
@@ -145,7 +160,7 @@ const Navbar: React.FC = () => {
             ))}
           </motion.nav>
           
-          {/* Center logo with absolute positioning for perfect centering */}
+          {/* Center logo with absolute positioning for perfect centering - adjusted for mobile */}
           <div className="absolute left-1/2 transform -translate-x-1/2 flex justify-center items-center z-20">
             {/* This wrapper maintains consistent positioning */}
             <motion.div
@@ -156,7 +171,7 @@ const Navbar: React.FC = () => {
             >
               <Link to="/" className="flex items-center">
                 <motion.div
-                  className="w-10 h-10 mr-3 overflow-hidden"
+                  className="w-8 h-8 md:w-10 md:h-10 mr-2 md:mr-3 overflow-hidden"
                   style={{ 
                     scale: logoScale,
                     filter: useTransform(
@@ -179,7 +194,7 @@ const Navbar: React.FC = () => {
                   />
                 </motion.div>
                 <motion.h1 
-                  className="text-xl md:text-2xl font-['Sora',Helvetica] text-white"
+                  className="text-lg md:text-2xl font-['Sora',Helvetica] text-white hidden xs:block"
                   style={{ 
                     scale: titleScale,
                     opacity: titleOpacity,
@@ -204,15 +219,15 @@ const Navbar: React.FC = () => {
           
           {/* Right controls with enhanced exit animation */}
           <motion.div 
-            className="flex-1 flex items-center justify-end space-x-4 pr-4"
+            className="flex-1 flex items-center justify-end space-x-3 md:space-x-4 pr-2 md:pr-4"
             style={{ 
               opacity: controlsOpacity,
               y: controlsTranslateY,
               pointerEvents: controlsOpacity.get() < 0.3 ? "none" : "auto"
             }}
           >
-            {/* Language selector with enhanced micro-interactions */}
-            <div className="relative" ref={languageMenuRef}>
+            {/* Language selector - hidden on smallest screens */}
+            <div className="relative hidden sm:block" ref={languageMenuRef}>
               <motion.button
                 className="flex items-center text-white/80 hover:text-white"
                 onClick={() => setShowLanguageMenu(!showLanguageMenu)}
@@ -249,9 +264,9 @@ const Navbar: React.FC = () => {
               </AnimatePresence>
             </div>
             
-            {/* Symbols icon with enhanced micro-interactions */}
+            {/* Symbols icon - hidden on smallest screens */}
             <motion.button
-              className="text-white/80 hover:text-white"
+              className="text-white/80 hover:text-white hidden sm:block"
               whileHover={{ scale: 1.1, y: -2, rotate: 5 }}
               whileTap={{ scale: 0.95, rotate: -5 }}
               onClick={() => window.location.href = '/symbols'}
@@ -259,16 +274,16 @@ const Navbar: React.FC = () => {
               <CanaaniteIcons.Language />
             </motion.button>
             
-            {/* Gift icon with enhanced micro-interactions */}
+            {/* Gift icon - hidden on smallest screens */}
             <motion.button
-              className="text-white/80 hover:text-white"
+              className="text-white/80 hover:text-white hidden sm:block"
               whileHover={{ scale: 1.1, y: -2, rotate: 5 }}
               whileTap={{ scale: 0.95, rotate: -5 }}
             >
               <CanaaniteIcons.Gift />
             </motion.button>
             
-            {/* Profile icon with enhanced micro-interactions */}
+            {/* Profile icon - always visible */}
             <motion.button
               className="flex items-center justify-center w-8 h-8 rounded-full bg-[#2a2a2a] text-white hover:bg-[#3a3a3a] transition-colors"
               whileHover={{ scale: 1.1, boxShadow: "0 0 10px rgba(255,255,255,0.2)" }}
@@ -280,10 +295,61 @@ const Navbar: React.FC = () => {
         </div>
       </div>
       
-      {/* Mobile navigation (hidden on desktop) */}
-      <div className="md:hidden">
-        {/* Mobile menu implementation here */}
-      </div>
+      {/* Mobile navigation - improved implementation */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div 
+            className="md:hidden fixed inset-0 z-40 bg-black/95 pt-20"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "100vh" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="flex flex-col items-center justify-start p-4 space-y-6 overflow-y-auto max-h-full">
+              {navItems.map((item, index) => (
+                <motion.div
+                  key={item.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ delay: index * 0.1, duration: 0.3 }}
+                >
+                  <Link
+                    to={item.href}
+                    className="flex flex-col items-center text-white/90 hover:text-white py-3"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {item.icon && <item.icon className="w-8 h-8 mb-2" />}
+                    <span className="text-xl">{item.name}</span>
+                  </Link>
+                </motion.div>
+              ))}
+              
+              {/* Language selector for mobile */}
+              <motion.div
+                className="mt-6 pt-6 border-t border-white/20 w-full"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: navItems.length * 0.1 + 0.2 }}
+              >
+                <div className="flex justify-center space-x-4">
+                  {["en", "ar", "fr", "es"].map((lang) => (
+                    <button
+                      key={lang}
+                      className={`px-4 py-2 rounded-md transition-colors ${
+                        language === lang ? "bg-white/20 text-white" : "text-white/70 hover:text-white"
+                      }`}
+                      onClick={() => changeLanguage(lang)}
+                    >
+                      {lang.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 };
