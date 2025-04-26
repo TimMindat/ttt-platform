@@ -1,11 +1,11 @@
-import { ClockIcon, Globe } from "lucide-react";
+import { ClockIcon } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
-import AuthButton from '../../components/AuthButton/AuthButton';
-import { db, auth } from "../../firebase/config";
 import { useNavigate, Link } from "react-router-dom";
+import Navbar from "../../components/Navbar/Navbar";
+import { CanaaniteIcons } from "../../components/icons/CanaaniteIcons";
 
 // Data for navigation items
 const navItems = [
@@ -76,21 +76,23 @@ const featuredStories = [
 
 export const MainHomepage = (): JSX.Element => {
   const navigate = useNavigate();
-  const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [hoveredProgram, setHoveredProgram] = useState<number | null>(null);
   const [hoveredStory, setHoveredStory] = useState<number | null>(null);
   const [activeSection, setActiveSection] = useState<string>("hero");
-  const [language, setLanguage] = useState<string>("en");
-  const [showLanguageMenu, setShowLanguageMenu] = useState<boolean>(false);
   const [currentSlide, setCurrentSlide] = useState<number>(0);
   const [isManualChange, setIsManualChange] = useState<boolean>(false);
-  const languageMenuRef = useRef<HTMLDivElement>(null);
   const sectionRefs = {
     hero: useRef<HTMLDivElement>(null),
     programs: useRef<HTMLDivElement>(null),
     stories: useRef<HTMLDivElement>(null),
     share: useRef<HTMLDivElement>(null),
   };
+  
+  // Add state for carousel
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
   
   // Auto-rotate slides
   useEffect(() => {
@@ -107,6 +109,42 @@ export const MainHomepage = (): JSX.Element => {
     };
   }, [isManualChange]);
   
+  // Handle carousel drag interactions
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!carouselRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - carouselRef.current.offsetLeft);
+    setScrollLeft(carouselRef.current.scrollLeft);
+  };
+  
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+  
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !carouselRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - carouselRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Scroll speed multiplier
+    carouselRef.current.scrollLeft = scrollLeft - walk;
+  };
+  
+  // Scroll to specific card
+  const scrollToCard = (index: number) => {
+    if (!carouselRef.current) return;
+    
+    const cardWidth = carouselRef.current.offsetWidth * 0.8; // Approximate card width
+    const newPosition = index * cardWidth;
+    
+    carouselRef.current.scrollTo({
+      left: newPosition,
+      behavior: 'smooth'
+    });
+    
+    // Update current slide
+    changeSlide(index);
+  };
+  
   // Reset manual change flag after some time
   useEffect(() => {
     let manualTimeout: NodeJS.Timeout;
@@ -122,10 +160,50 @@ export const MainHomepage = (): JSX.Element => {
     };
   }, [isManualChange, currentSlide]);
   
-  // Handle manual slide change
+  // Enhanced slide change function with animation
   const changeSlide = (index: number) => {
-    setCurrentSlide(index);
+    // Ensure index is within bounds
+    const newIndex = (index + suggestedContent.length) % suggestedContent.length;
+    
+    // Set the new slide with animation
+    setCurrentSlide(newIndex);
     setIsManualChange(true);
+    
+    // Scroll to the card if carousel ref exists
+    if (carouselRef.current) {
+      const cardWidth = carouselRef.current.offsetWidth * 0.8;
+      const newPosition = newIndex * cardWidth;
+      
+      carouselRef.current.scrollTo({
+        left: newPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+  
+  // Handle next/previous slide navigation
+  const nextSlide = () => {
+    changeSlide(currentSlide + 1);
+  };
+  
+  const prevSlide = () => {
+    changeSlide(currentSlide - 1);
+  };
+  
+  // Animation variants for slide transitions
+  const slideVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? '100%' : '-100%',
+      opacity: 0
+    }),
+    center: {
+      x: 0,
+      opacity: 1
+    },
+    exit: (direction: number) => ({
+      x: direction < 0 ? '100%' : '-100%',
+      opacity: 0
+    })
   };
   
   // Enhanced scroll animation hooks
@@ -141,6 +219,12 @@ export const MainHomepage = (): JSX.Element => {
       "rgba(18,18,18,1)"
     ]
   );
+  
+  // New transformations for navbar elements
+  const navItemsOpacity = useTransform(scrollY, [0, 150], [1, 0]);
+  const navItemsScale = useTransform(scrollY, [0, 150], [1, 0.8]);
+  const logoScale = useTransform(scrollY, [0, 150], [1, 0.9]);
+  const logoPosition = useTransform(scrollY, [0, 150], ["50%", "0%"]);
   
   // Smoother parallax effects
   const heroScale = useTransform(scrollY, [0, 400], [1, 0.95]);
@@ -187,26 +271,7 @@ export const MainHomepage = (): JSX.Element => {
     }
   };
 
-  // Close language menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (languageMenuRef.current && !languageMenuRef.current.contains(event.target as Node)) {
-        setShowLanguageMenu(false);
-      }
-    };
-    
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
-  // Toggle language function
-  const toggleLanguage = (lang: string) => {
-    setLanguage(lang);
-    setShowLanguageMenu(false);
-    // Here you would implement actual language change logic
-  };
   
   // Navigate to program page
   const navigateToProgram = (programTitle: string) => {
@@ -215,279 +280,328 @@ export const MainHomepage = (): JSX.Element => {
   };
 
   return (
-    <div className="flex flex-col bg-[#121212] min-h-screen w-full overflow-x-hidden">
-      {/* Enhanced header with gradient effect */}
-      <motion.header 
-        className="relative w-full h-16 z-50"
-        style={{ 
-          background: headerBackground,
-          opacity: headerOpacity,
-          backdropFilter: "blur(8px)",
-          boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)"
-        }}
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-      >
-        <div className="container mx-auto h-full px-4 md:px-20">
-          <div className="flex items-center justify-between h-full relative">
-            <nav className="hidden md:flex items-center space-x-6 w-1/3">
-              {navItems.map((item) => (
-                <motion.a
-                  key={item.name}
-                  href={item.href}
-                  className="text-[#f2f2f2] font-['Sora',Helvetica] text-base leading-4 relative"
-                  onHoverStart={() => setHoveredNav(item.name)}
-                  onHoverEnd={() => setHoveredNav(null)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {item.name}
-                  {hoveredNav === item.name && (
-                    <motion.div
-                      className="absolute bottom-0 left-0 w-full h-0.5 bg-white"
-                      layoutId="navUnderline"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                    />
-                  )}
-                </motion.a>
-              ))}
-            </nav>
+    <div className="min-h-screen bg-[#121212] text-white overflow-x-hidden">
+      {/* Navbar */}
+      <Navbar />
 
-            <motion.div
-              className="text-[#d5d5d5] font-['Sora',Helvetica] text-2xl leading-6 w-1/3 text-center mx-auto"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              Trace of the Tides
-            </motion.div>
-
-            <div className="flex items-center justify-end space-x-4 w-1/3">
-              {/* Language toggle */}
-              <div className="relative" ref={languageMenuRef}>
-                <motion.button
-                  className="flex items-center justify-center text-white hover:text-neutral-200 transition-colors duration-200"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-                >
-                  <Globe className="w-5 h-5 mr-1" />
-                  <span className="text-sm uppercase">{language}</span>
-                </motion.button>
-                
-                <AnimatePresence>
-                  {showLanguageMenu && (
-                    <motion.div
-                      className="absolute right-0 mt-2 w-24 bg-[#1a1a1a] rounded-md shadow-lg z-50"
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {["en", "ar", "fr", "es"].map((lang) => (
-                        <motion.button
-                          key={lang}
-                          className={`block w-full text-left px-4 py-2 text-sm ${
-                            language === lang ? "text-white bg-[#2a2a2a]" : "text-gray-300 hover:bg-[#2a2a2a]"
-                          } transition-colors duration-200`}
-                          onClick={() => toggleLanguage(lang)}
-                          whileHover={{ x: 3 }}
-                        >
-                          {lang.toUpperCase()}
-                        </motion.button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-              
-              <motion.button
-                className="flex items-center justify-center w-5 h-5"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <img className="w-5 h-5" alt="Search" src="/frame-4.svg" />
-              </motion.button>
-              <motion.button
-                className="md:hidden flex items-center justify-center w-5 h-5"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <img className="w-5 h-5" alt="Menu" src="/frame.svg" />
-              </motion.button>
-              <motion.button
-                className="md:hidden flex items-center justify-center w-5 h-5"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <img className="w-5 h-5" alt="Menu" src="/frame.svg" />
-              </motion.button>
-              
-            </div>
-            
-            {/* Slide indicators */}
-            <div className="flex justify-center mt-4 space-x-2">
-              {suggestedContent.slice(0, 4).map((_, index) => (
-                <motion.button
-                  key={index}
-                  className={`w-2 h-2 rounded-full ${
-                    currentSlide === index ? "bg-white" : "bg-gray-500"
-                  }`}
-                  onClick={() => changeSlide(index)}
-                  whileHover={{ scale: 1.5 }}
-                  whileTap={{ scale: 0.9 }}
-                  animate={currentSlide === index ? { scale: [1, 1.2, 1] } : {}}
-                  transition={{ duration: 0.5 }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </motion.header>
-
-      {/* Hero Section with dynamic background and content */}
-      <motion.section
+      {/* Hero Section with Carousel */}
+      <motion.div
         ref={sectionRefs.hero}
-        className="relative w-full h-[900px] bg-cover bg-center"
-        style={{ 
-          backgroundImage: `url(${suggestedContent[currentSlide].image})`,
-          scale: heroScale,
+        className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden"
+        style={{
+          filter: heroBlur,
           opacity: heroOpacity,
-          filter: heroBlur
+          scale: heroScale,
         }}
-        key={currentSlide} // Add key to force re-render on slide change
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 1 }}
       >
-        <motion.div 
-          className="absolute inset-0"
+        {/* Background image - still shows the current slide as background */}
+        <motion.div
+          className="absolute inset-0 bg-cover bg-center"
           style={{
-            background: "linear-gradient(90deg,rgba(18,18,18,1) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,0) 100%)"
+            backgroundImage: `url(${suggestedContent[currentSlide].image})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
           }}
-        />
+          initial={{ scale: 1.1 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/40" />
+        </motion.div>
 
-        <div className="relative h-full flex flex-col justify-end">
-          {/* Featured Story with enhanced animations - adjusted positioning */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentSlide}
-              className="absolute top-[250px] left-[5%] md:left-[145px] flex flex-col items-start gap-[27.65px]"
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 50 }}
-              transition={{ duration: 0.8 }}
+        {/* Content - Moved down to avoid navbar overlap */}
+        <div className="container mx-auto px-4 md:px-20 relative z-10 mt-36 md:mt-48 mb-auto">
+          <motion.div
+            className="max-w-4xl mx-auto text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            {/* Canaanite-inspired decorative element */}
+            <motion.div 
+              className="flex justify-center mb-8"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1, delay: 0.1 }}
             >
-              <motion.img
-                className="w-[76.59px] h-[97.87px] cursor-pointer"
-                alt="Play button"
-                src="/ic-play.svg"
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                animate={{ 
-                  boxShadow: ["0px 0px 0px rgba(255,255,255,0)", "0px 0px 20px rgba(255,255,255,0.3)", "0px 0px 0px rgba(255,255,255,0)"],
-                }}
-                transition={{ 
-                  boxShadow: { repeat: Infinity, duration: 2 },
-                }}
-              />
-              <motion.h1 
-                className="text-3xl md:text-[55.3px] leading-tight md:leading-[66.4px] text-white"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.8 }}
-              >
-                {suggestedContent[currentSlide].title.split(':').map((part, index) => (
-                  <span key={index} className={index === 0 ? "font-bold" : "font-normal"}>
-                    {index > 0 && ": "}
-                    {part}
-                  </span>
-                ))}
-              </motion.h1>
+              <svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 20H110" stroke="white" strokeWidth="1" strokeDasharray="1 3" />
+                <path d="M60 5L60 35" stroke="white" strokeWidth="1" strokeDasharray="1 3" />
+                <path d="M30 10L90 30" stroke="white" strokeWidth="1" strokeDasharray="1 3" />
+                <path d="M30 30L90 10" stroke="white" strokeWidth="1" strokeDasharray="1 3" />
+                <circle cx="60" cy="20" r="8" stroke="white" strokeWidth="1" />
+                <path d="M40 20L20 10L20 30L40 20Z" stroke="white" strokeWidth="1" />
+                <path d="M80 20L100 10L100 30L80 20Z" stroke="white" strokeWidth="1" />
+              </svg>
             </motion.div>
-          </AnimatePresence>
-
-          {/* Stories from the Sea - adjusted positioning */}
-          <div className="container mx-auto px-4 md:px-20 pb-32">
-            <motion.div
-              className="mb-5"
+            
+            <motion.h1
+              className="text-4xl md:text-6xl font-bold text-white mb-8 hero-title canaanite-title"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
             >
-              <h2 className="text-3xl md:text-5xl font-['Sora',Helvetica] text-white leading-tight md:leading-[48px]">
-                Stories from the Sea
-              </h2>
-              <p className="text-lg md:text-xl font-['Sora',Helvetica] text-gray-300 leading-5 mt-7">
-                Explore the rich tapestry of culture through immersive
-                storytelling
-              </p>
+              <AnimatePresence mode="wait" custom={currentSlide > (currentSlide - 1 + suggestedContent.length) % suggestedContent.length ? 1 : -1}>
+                <motion.div
+                  key={currentSlide}
+                  custom={currentSlide > (currentSlide - 1 + suggestedContent.length) % suggestedContent.length ? 1 : -1}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ 
+                    x: { type: "spring", stiffness: 300, damping: 30 },
+                    opacity: { duration: 0.3 }
+                  }}
+                >
+                  {suggestedContent[currentSlide].title}
+                </motion.div>
+              </AnimatePresence>
+            </motion.h1>
+
+            {/* Canaanite-inspired decorative divider */}
+            <motion.div 
+              className="flex justify-center mb-8"
+              initial={{ width: 0 }}
+              animate={{ width: "100%" }}
+              transition={{ duration: 1, delay: 0.4 }}
+            >
+              <svg width="200" height="20" viewBox="0 0 200 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="canaanite-divider">
+                <path d="M0 10H200" stroke="white" strokeWidth="0.5" strokeDasharray="1 3" />
+                <path d="M40 10L60 5L80 10L100 5L120 10L140 5L160 10" stroke="white" strokeWidth="1" />
+                <circle cx="40" cy="10" r="3" fill="white" fillOpacity="0.6" />
+                <circle cx="100" cy="10" r="3" fill="white" fillOpacity="0.6" />
+                <circle cx="160" cy="10" r="3" fill="white" fillOpacity="0.6" />
+              </svg>
             </motion.div>
-          </div>
+
+            {/* Video Play Button with Canaanite-inspired design */}
+            <motion.div
+              className="flex justify-center mt-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              <motion.button
+                className="group relative flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-all duration-300 canaanite-play-btn"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+              >
+                {/* Play icon */}
+                <motion.div 
+                  className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[18px] border-l-white border-b-[10px] border-b-transparent ml-1"
+                  initial={{ scale: 0.9, opacity: 0.8 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ 
+                    repeat: Infinity, 
+                    repeatType: "reverse", 
+                    duration: 1.5 
+                  }}
+                />
+                
+                {/* Canaanite-inspired ripple effect */}
+                <motion.div
+                  className="absolute inset-0 rounded-full border border-white/30"
+                  initial={{ scale: 1, opacity: 1 }}
+                  animate={{ 
+                    scale: [1, 1.5, 1.8],
+                    opacity: [1, 0.5, 0],
+                  }}
+                  transition={{ 
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "easeOut"
+                  }}
+                />
+                
+                {/* Additional Canaanite-inspired decorative elements */}
+                <motion.div
+                  className="absolute inset-0 rounded-full"
+                  initial={{ opacity: 0.3 }}
+                  animate={{ opacity: [0.3, 0.6, 0.3] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                >
+                  <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                    <path d="M32 8L32 56" stroke="white" strokeWidth="0.5" strokeDasharray="1 3" />
+                    <path d="M8 32L56 32" stroke="white" strokeWidth="0.5" strokeDasharray="1 3" />
+                    <path d="M13 13L51 51" stroke="white" strokeWidth="0.5" strokeDasharray="1 3" />
+                    <path d="M13 51L51 13" stroke="white" strokeWidth="0.5" strokeDasharray="1 3" />
+                  </svg>
+                </motion.div>
+              </motion.button>
+              
+              {/* Watch text with Canaanite-inspired styling */}
+              <motion.span 
+                className="ml-4 text-white/90 text-lg font-medium canaanite-text"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.8 }}
+              >
+                Watch Video
+              </motion.span>
+            </motion.div>
+          </motion.div>
         </div>
 
-        {/* Suggested Content - adjusted positioning */}
-        <div className="absolute bottom-20 left-0 w-full">
-          <div className="container mx-auto px-4 md:px-20">
-            <motion.h3 
-              className="text-3xl md:text-4xl font-bold font-['Poppins',Helvetica] text-neutral-200 mb-3"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              Suggested
-            </motion.h3>
-            <div className="flex space-x-2 overflow-x-auto pb-4 scrollbar-hide">
-              {suggestedContent.slice(0, 4).map((item, index) => (
+        {/* Carousel Section */}
+        <div className="w-full relative z-10 mt-auto mb-12">
+          {/* Left Arrow with Canaanite-inspired design */}
+          <motion.button
+            className="absolute left-4 md:left-8 top-1/2 transform -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-3 rounded-full z-20 canaanite-nav-btn"
+            onClick={prevSlide}
+            whileHover={{ scale: 1.1, backgroundColor: "rgba(0,0,0,0.7)" }}
+            whileTap={{ scale: 0.9 }}
+            initial={{ opacity: 0.7 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 6L9 12L15 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M9 12H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 4L12 20" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1 2" strokeLinecap="round"/>
+            </svg>
+          </motion.button>
+          
+          {/* Right Arrow with Canaanite-inspired design */}
+          <motion.button
+            className="absolute right-4 md:right-8 top-1/2 transform -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-3 rounded-full z-20 canaanite-nav-btn"
+            onClick={nextSlide}
+            whileHover={{ scale: 1.1, backgroundColor: "rgba(0,0,0,0.7)" }}
+            whileTap={{ scale: 0.9 }}
+            initial={{ opacity: 0.7 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M15 12H6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 4L12 20" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1 2" strokeLinecap="round"/>
+            </svg>
+          </motion.button>
+          
+          {/* Carousel Container with Canaanite-inspired styling */}
+          <div 
+            ref={carouselRef}
+            className="carousel-container w-full overflow-x-auto hide-scrollbar px-4 md:px-20 canaanite-carousel"
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            style={{ 
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              cursor: isDragging ? 'grabbing' : 'grab'
+            }}
+          >
+            <div className="carousel-track inline-flex space-x-4 py-4">
+              {suggestedContent.map((content, index) => (
                 <motion.div
-                  key={item.id}
-                  className={`flex-shrink-0 w-[280px] md:w-[389px] h-[160px] rounded-[5px] bg-cover bg-center cursor-pointer ${
-                    currentSlide === index ? "ring-2 ring-white" : ""
-                  }`}
-                  style={{ backgroundImage: `url(${item.image})` }}
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.5 }}
-                  whileHover={{ 
-                    scale: 1.03, 
-                    boxShadow: "0px 10px 25px rgba(0, 0, 0, 0.3)",
-                    zIndex: 10
-                  }}
+                  key={content.id}
+                  className={`carousel-card flex-shrink-0 w-[80%] md:w-[40%] lg:w-[30%] rounded-xl overflow-hidden shadow-lg ${
+                    currentSlide === index ? 'ring-2 ring-white/70 scale-[1.02]' : 'opacity-80'
+                  } canaanite-card`}
+                  onClick={() => scrollToCard(index)}
+                  whileHover={{ scale: 1.03, opacity: 1 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => changeSlide(index)}
-                />
-              ))}
-              <motion.div 
-                className="flex-shrink-0 w-[280px] md:w-[383px] h-[160px] bg-[#14141480] rounded-[5px]"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              />
-            </div>
-            
-            {/* Slide indicators */}
-            <div className="flex justify-center mt-4 space-x-2">
-              {suggestedContent.slice(0, 4).map((_, index) => (
-                <motion.button
-                  key={index}
-                  className={`w-2 h-2 rounded-full ${
-                    currentSlide === index ? "bg-white" : "bg-gray-500"
-                  }`}
-                  onClick={() => changeSlide(index)}
-                  whileHover={{ scale: 1.5 }}
-                  whileTap={{ scale: 0.9 }}
-                  animate={currentSlide === index ? { scale: [1, 1.2, 1] } : {}}
-                  transition={{ duration: 0.5 }}
-                />
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="relative aspect-video">
+                    <img 
+                      src={content.image} 
+                      alt={content.title} 
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                    
+                    {/* Canaanite-inspired video indicator */}
+                    <motion.div 
+                      className="absolute inset-0 flex items-center justify-center"
+                      initial={{ opacity: 0 }}
+                      whileHover={{ opacity: 1 }}
+                    >
+                      <motion.div 
+                        className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center canaanite-play-indicator"
+                        whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.3)" }}
+                      >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M8 5L18 12L8 19V5Z" fill="white"/>
+                          <path d="M12 3V21" stroke="white" strokeWidth="0.5" strokeDasharray="1 2" strokeLinecap="round"/>
+                          <path d="M3 12H21" stroke="white" strokeWidth="0.5" strokeDasharray="1 2" strokeLinecap="round"/>
+                        </svg>
+                      </motion.div>
+                    </motion.div>
+                    
+                    {/* Canaanite-inspired title container */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <h3 className="text-white text-lg font-semibold line-clamp-2 canaanite-card-title">{content.title}</h3>
+                      
+                      {/* Canaanite-inspired decorative line */}
+                      <motion.div 
+                        className="w-12 h-0.5 bg-white/50 mt-2"
+                        initial={{ width: 0 }}
+                        whileInView={{ width: "3rem" }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                      />
+                    </div>
+                    
+                    {currentSlide === index && (
+                      <motion.div 
+                        className="absolute inset-0 border-2 border-white/50 rounded-xl canaanite-active-card"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        layoutId="activeCardHighlight"
+                      >
+                        {/* Canaanite-inspired corner decorations */}
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-0 left-0">
+                          <path d="M1 1V8H8" stroke="white" strokeWidth="1.5"/>
+                        </svg>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-0 right-0 rotate-90">
+                          <path d="M1 1V8H8" stroke="white" strokeWidth="1.5"/>
+                        </svg>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute bottom-0 right-0 rotate-180">
+                          <path d="M1 1V8H8" stroke="white" strokeWidth="1.5"/>
+                        </svg>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute bottom-0 left-0 -rotate-90">
+                          <path d="M1 1V8H8" stroke="white" strokeWidth="1.5"/>
+                        </svg>
+                      </motion.div>
+                    )}
+                  </div>
+                </motion.div>
               ))}
             </div>
           </div>
+          
+          {/* Progress indicator removed */}
         </div>
-      </motion.section>
+        
+        {/* Canaanite-Inspired Scroll Indicator */}
+        <motion.div 
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2, duration: 0.8 }}
+        >
+          <span className="text-sm text-white/70 mb-2">Scroll to explore</span>
+          <motion.div
+            className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center p-1"
+            initial={{ y: 0 }}
+            animate={{ y: [0, 5, 0] }}
+            transition={{ repeat: Infinity, duration: 1.5 }}
+          >
+            <motion.div 
+              className="w-1.5 h-1.5 bg-white rounded-full"
+              animate={{ 
+                y: [0, 12, 0],
+                opacity: [0.5, 1, 0.5]
+              }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+            />
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* Content sections with enhanced scroll effect */}
       <motion.div 
@@ -500,24 +614,7 @@ export const MainHomepage = (): JSX.Element => {
           boxShadow: "0px -10px 30px rgba(0, 0, 0, 0.3)"
         }}
       >
-        {/* Section indicator dots - Netflix style */}
-        <div className="fixed right-8 top-1/2 transform -translate-y-1/2 z-50 hidden md:flex flex-col gap-4">
-          {["hero", "programs", "stories", "share"].map((section) => (
-            <motion.div
-              key={section}
-              className="w-3 h-3 rounded-full cursor-pointer"
-              style={{ 
-                backgroundColor: activeSection === section ? "#ffffff" : "rgba(255,255,255,0.3)" 
-              }}
-              whileHover={{ scale: 1.2 }}
-              onClick={() => scrollToSection(section)}
-              animate={{ 
-                scale: activeSection === section ? 1.2 : 1,
-              }}
-              transition={{ duration: 0.3 }}
-            />
-          ))}
-        </div>
+        {/* Section indicator dots removed */}
 
         {/* Featured Programs - continuous scroll with unified background */}
         <section 
@@ -542,6 +639,17 @@ export const MainHomepage = (): JSX.Element => {
             }}
           />
           
+          {/* Canaanite-inspired geometric overlay */}
+          <div className="absolute inset-0 z-0 opacity-5">
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <pattern id="canaaniteGrid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M0 20H40M20 0V40" stroke="white" strokeWidth="0.5" strokeDasharray="1 3"/>
+                <path d="M0 0L40 40M40 0L0 40" stroke="white" strokeWidth="0.5" strokeDasharray="1 3"/>
+              </pattern>
+              <rect width="100%" height="100%" fill="url(#canaaniteGrid)" />
+            </svg>
+          </div>
+          
           <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-20 relative z-10 max-w-[1920px] w-full">
             <motion.div
               initial={{ opacity: 0 }}
@@ -550,21 +658,47 @@ export const MainHomepage = (): JSX.Element => {
               transition={{ duration: 0.8 }}
               className="mb-12"
             >
-              <motion.h2
-                className="text-3xl md:text-5xl font-['Sora',Helvetica] text-white mb-6 relative inline-block"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-              >
-                Featured Programs
+              {/* Canaanite-inspired section header */}
+              <div className="flex items-center mb-6">
                 <motion.div 
-                  className="absolute -bottom-2 left-0 h-1 bg-white"
-                  initial={{ width: 0 }}
-                  whileInView={{ width: "100%" }}
+                  className="mr-4"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: 0.3, duration: 0.8 }}
-                />
-              </motion.h2>
+                  transition={{ duration: 0.5 }}
+                >
+                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 5V35" stroke="white" strokeWidth="1.5"/>
+                    <path d="M5 20H35" stroke="white" strokeWidth="1.5"/>
+                    <path d="M10 10L30 30" stroke="white" strokeWidth="1" strokeDasharray="1 2"/>
+                    <path d="M30 10L10 30" stroke="white" strokeWidth="1" strokeDasharray="1 2"/>
+                    <circle cx="20" cy="20" r="3" fill="white"/>
+                  </svg>
+                </motion.div>
+                
+                <motion.h2
+                  className="text-3xl md:text-5xl font-['Sora',Helvetica] text-white relative inline-block canaanite-section-title"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                >
+                  Featured Programs
+                </motion.h2>
+              </div>
+              
+              {/* Canaanite-inspired decorative divider */}
+              <motion.div 
+                className="w-full h-[2px] relative overflow-hidden mb-8"
+                initial={{ width: 0 }}
+                whileInView={{ width: "100%" }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3, duration: 0.8 }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent"></div>
+                <svg width="100%" height="2" viewBox="0 0 300 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M0 1H300" stroke="white" strokeWidth="0.5" strokeDasharray="1 3"/>
+                </svg>
+              </motion.div>
               <motion.p
                 className="text-lg md:text-xl font-['Sora',Helvetica] text-gray-300 max-w-2xl"
                 initial={{ opacity: 0, y: 20 }}
@@ -580,7 +714,7 @@ export const MainHomepage = (): JSX.Element => {
               {featuredPrograms.map((program) => (
                 <motion.div
                   key={program.id}
-                  className="relative"
+                  className="relative overflow-hidden rounded-xl group"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -602,8 +736,20 @@ export const MainHomepage = (): JSX.Element => {
                       <img
                         src={program.image}
                         alt={program.title}
-                        className="absolute w-full h-full object-cover"
+                        className="absolute w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
+                      
+                      {/* Program icon based on title */}
+                      <motion.div 
+                        className="absolute top-4 right-4 z-20 text-white/80"
+                        initial={{ opacity: 0, rotate: -10 }}
+                        animate={{ opacity: 1, rotate: 0 }}
+                        transition={{ delay: 0.3 * program.id, duration: 0.6 }}
+                      >
+                        {program.title === "Boat" && <CanaaniteIcons.Harbour />}
+                        {program.title === "Coast" && <CanaaniteIcons.Coast />}
+                        {program.title === "Azure" && <CanaaniteIcons.Azure />}
+                      </motion.div>
                       
                       {/* Gradient overlay that intensifies on hover */}
                       <motion.div
@@ -799,6 +945,28 @@ export const MainHomepage = (): JSX.Element => {
                           transition={{ duration: 0.3 }}
                         />
                         
+                        {/* Canaanite pattern overlay that appears on hover */}
+                        <motion.div 
+                          className="absolute inset-0 z-5 pointer-events-none"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: hoveredStory === story.id ? 0.15 : 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <svg width="100%" height="100%" viewBox="0 0 100 100">
+                            <defs>
+                              <pattern id={`storyPattern-${story.id}`} patternUnits="userSpaceOnUse" width="20" height="20">
+                                <path 
+                                  d="M0 10L10 0L20 10L10 20Z" 
+                                  stroke="white" 
+                                  strokeWidth="0.5" 
+                                  fill="none"
+                                />
+                              </pattern>
+                            </defs>
+                            <rect width="100%" height="100%" fill={`url(#storyPattern-${story.id})`} />
+                          </svg>
+                        </motion.div>
+                        
                         <AnimatePresence>
                           {hoveredStory === story.id && (
                             <motion.div
@@ -959,13 +1127,22 @@ export const MainHomepage = (): JSX.Element => {
               </motion.p>
               
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
                 className="inline-block"
               >
-                <Button className="bg-white text-neutral-900 rounded-full h-14 px-8 font-['Sora',Helvetica] text-lg hover:bg-neutral-200 hover:text-black transition-all duration-300 shadow-xl hover:shadow-white/20">
-                  Submit Your Story
-                </Button>
+                <motion.button
+                  className="bg-white text-neutral-900 rounded-full h-14 px-8 font-['Sora',Helvetica] text-lg hover:bg-neutral-200 hover:text-black transition-all duration-300 shadow-xl hover:shadow-white/20 relative overflow-hidden group"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <motion.span 
+                    className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100"
+                    initial={{ x: "-100%" }}
+                    whileHover={{ x: "0%" }}
+                    transition={{ duration: 0.4 }}
+                  />
+                  <span className="relative z-10">Submit Your Story</span>
+                </motion.button>
               </motion.div>
               
               <motion.div
