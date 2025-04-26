@@ -576,31 +576,8 @@ export const MainHomepage = (): JSX.Element => {
           
           {/* Progress indicator removed */}
         </div>
-        
-        {/* Canaanite-Inspired Scroll Indicator */}
-        <motion.div 
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2, duration: 0.8 }}
-        >
-          <span className="text-sm text-white/70 mb-2">Scroll to explore</span>
-          <motion.div
-            className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center p-1"
-            initial={{ y: 0 }}
-            animate={{ y: [0, 5, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-          >
-            <motion.div 
-              className="w-1.5 h-1.5 bg-white rounded-full"
-              animate={{ 
-                y: [0, 12, 0],
-                opacity: [0.5, 1, 0.5]
-              }}
-              transition={{ repeat: Infinity, duration: 1.5 }}
-            />
-          </motion.div>
-        </motion.div>
+    
+        {/* Scroll to Explore Indicator removed */}
       </motion.div>
 
       {/* Content sections with enhanced scroll effect */}

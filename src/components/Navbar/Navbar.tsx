@@ -3,13 +3,12 @@ import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 import { Link, useLocation } from "react-router-dom";
 import { CanaaniteIcons } from "../icons/CanaaniteIcons";
 
-// Updated navigation items
+// Updated navigation items - removed Symbols
 const navItems = [
   { name: "Coast", href: "/programs/coast", icon: CanaaniteIcons.Coast },
   { name: "Harbour", href: "/programs/harbour", icon: CanaaniteIcons.Harbour },
   { name: "Azure", href: "/programs/azure", icon: CanaaniteIcons.Azure },
   { name: "Commons", href: "#", icon: CanaaniteIcons.Commons },
-  { name: "Symbols", href: "/symbols", icon: CanaaniteIcons.Language },
 ];
 
 const Navbar: React.FC = () => {
@@ -107,7 +106,7 @@ const Navbar: React.FC = () => {
         <div className="flex items-center h-16 md:h-20">
           {/* Left navigation with enhanced exit animation */}
           <motion.nav 
-            className="flex-1 hidden md:flex items-center space-x-6"
+            className="flex-1 hidden md:flex items-center space-x-6 justify-start pl-4"
             style={{ 
               opacity: navItemsOpacity,
               scale: navItemsScale,
@@ -146,8 +145,8 @@ const Navbar: React.FC = () => {
             ))}
           </motion.nav>
           
-          {/* Center logo with stable positioning and enhanced visibility */}
-          <div className="flex-1 flex justify-center items-center">
+          {/* Center logo with absolute positioning for perfect centering */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 flex justify-center items-center z-20">
             {/* This wrapper maintains consistent positioning */}
             <motion.div
               className="flex items-center"
@@ -205,7 +204,7 @@ const Navbar: React.FC = () => {
           
           {/* Right controls with enhanced exit animation */}
           <motion.div 
-            className="flex-1 flex items-center justify-end space-x-4"
+            className="flex-1 flex items-center justify-end space-x-4 pr-4"
             style={{ 
               opacity: controlsOpacity,
               y: controlsTranslateY,
@@ -249,6 +248,16 @@ const Navbar: React.FC = () => {
                 )}
               </AnimatePresence>
             </div>
+            
+            {/* Symbols icon with enhanced micro-interactions */}
+            <motion.button
+              className="text-white/80 hover:text-white"
+              whileHover={{ scale: 1.1, y: -2, rotate: 5 }}
+              whileTap={{ scale: 0.95, rotate: -5 }}
+              onClick={() => window.location.href = '/symbols'}
+            >
+              <CanaaniteIcons.Language />
+            </motion.button>
             
             {/* Gift icon with enhanced micro-interactions */}
             <motion.button
