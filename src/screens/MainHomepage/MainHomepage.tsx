@@ -1157,104 +1157,101 @@ export const MainHomepage = (): JSX.Element => {
           </div>
         </section>
         
-        <footer className="bg-[#0a0a0a] py-12 relative z-10">
-          <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-20 max-w-[1920px] w-full">
+        {/* Footer Section */}
+        <footer className="bg-[#0a0a0a] text-white/70 py-12 mt-20 border-t border-white/10">
+          <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-              >
-                <h3 className="text-xl font-['Sora',Helvetica] text-white mb-4">Trace of the Tides</h3>
-                <p className="text-gray-400 text-sm">Preserving heritage through digital storytelling and community engagement.</p>
-                <motion.div 
-                  className="w-12 h-0.5 bg-white mt-4"
-                  initial={{ width: 0 }}
-                  whileInView={{ width: "48px" }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.3, duration: 0.8 }}
-                />
-              </motion.div>
+              {/* Logo and description */}
+              <div className="col-span-1 md:col-span-1">
+                <Link to="/" className="flex items-center mb-4">
+                  <img 
+                    src="https://i.imgur.com/bwdY3iU.png" 
+                    alt="Trace of the Tides Logo" 
+                    className="w-10 h-10 mr-3"
+                  />
+                  <h3 className="text-xl font-['Sora',Helvetica] text-white">Trace of the Tides</h3>
+                </Link>
+                <p className="text-sm text-white/60 mb-6">
+                  Preserving our collective memory through stories, testimonies, and cultural artifacts.
+                </p>
+                
+                {/* Canaanite-inspired decorative element */}
+                <div className="flex space-x-4 mt-4">
+                  <a href="#" className="text-white/60 hover:text-white transition-colors">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M8 12L12 16L16 12M12 8V16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </a>
+                  <a href="#" className="text-white/60 hover:text-white transition-colors">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M7 10V14M12 6V18M17 10V14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </a>
+                  <a href="#" className="text-white/60 hover:text-white transition-colors">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </a>
+                </div>
+              </div>
               
-              {[
-                { title: "Programs", links: ["Coast", "Boat", "Azure", "Commons"] },
-                { title: "Resources", links: ["Stories", "Archive", "Research", "Media"] },
-                { title: "Connect", links: ["About Us", "Contact", "Support", "Donate"] }
-              ].map((col, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 * index, duration: 0.5 }}
-                >
-                  <h3 className="text-lg font-['Sora',Helvetica] text-white mb-4">{col.title}</h3>
-                  <ul className="space-y-2">
-                    {col.links.map((link, i) => (
-                      <motion.li key={i} whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
-                        <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors duration-200">{link}</a>
-                      </motion.li>
-                    ))}
-                  </ul>
-                </motion.div>
-              ))}
+              {/* Programs */}
+              <div className="col-span-1">
+                <h4 className="text-white font-semibold mb-4">Programs</h4>
+                <ul className="space-y-2">
+                  <li><Link to="/programs/coast" className="hover:text-white transition-colors">Coast</Link></li>
+                  <li><Link to="/programs/boat" className="hover:text-white transition-colors">Boat</Link></li>
+                  <li><Link to="/programs/azure" className="hover:text-white transition-colors">Azure</Link></li>
+                  <li><Link to="/programs/commons" className="hover:text-white transition-colors">Commons</Link></li>
+                </ul>
+              </div>
+              
+              {/* Resources */}
+              <div className="col-span-1">
+                <h4 className="text-white font-semibold mb-4">Resources</h4>
+                <ul className="space-y-2">
+                  <li><Link to="/symbols" className="hover:text-white transition-colors">Symbols</Link></li>
+                  <li><Link to="/archives" className="hover:text-white transition-colors">Archives</Link></li>
+                  <li><Link to="/contribute" className="hover:text-white transition-colors">Contribute</Link></li>
+                  <li><Link to="/maps" className="hover:text-white transition-colors">Maps</Link></li>
+                </ul>
+              </div>
+              
+              {/* Contact */}
+              <div className="col-span-1">
+                <h4 className="text-white font-semibold mb-4">Contact</h4>
+                <ul className="space-y-2">
+                  <li className="flex items-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+                      <path d="M3 8L10.89 13.26C11.2187 13.4793 11.6049 13.5963 12 13.5963C12.3951 13.5963 12.7813 13.4793 13.11 13.26L21 8M5 19H19C20.1046 19 21 18.1046 21 17V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V17C3 18.1046 3.89543 19 5 19Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span>info@traceofthetides.org</span>
+                  </li>
+                  <li className="flex items-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+                      <path d="M17.6569 16.6569L13.9142 20.3995C13.1332 21.1805 11.8668 21.1805 11.0858 20.3995L7.34315 16.6569C3.21895 12.5327 3.21895 5.86327 7.34315 1.73908C11.4673 -2.38512 18.1368 -2.38512 22.261 1.73908C26.3851 5.86327 26.3851 12.5327 22.261 16.6569H17.6569Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M17 9C17 10.6569 15.6569 12 14 12C12.3431 12 11 10.6569 11 9C11 7.34315 12.3431 6 14 6C15.6569 6 17 7.34315 17 9Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span>Palestine</span>
+                  </li>
+                </ul>
+                
+                <div className="mt-6">
+                  <button className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors">
+                    Subscribe to Newsletter
+                  </button>
+                </div>
+              </div>
             </div>
             
-            <motion.div 
-              className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.5, duration: 0.5 }}
-            >
-              <p className="text-gray-500 text-sm">© 2024 Trace of the Tides. All rights reserved.</p>
+            <div className="border-t border-white/10 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+              <p className="text-sm text-white/40">© {new Date().getFullYear()} Trace of the Tides. All rights reserved.</p>
               <div className="flex space-x-4 mt-4 md:mt-0">
-                <motion.a 
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors duration-200"
-                  whileHover={{ y: -3, scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22 4.01c-1 .49-1.98.689-3 .99-1.121-1.265-2.783-1.335-4.38-.737S11.977 6.323 12 8v1c-3.245.083-6.135-1.395-8-4 0 0-4.182 7.433 4 11-1.872 1.247-3.739 2.088-6 2 3.308 1.803 6.913 2.423 10.034 1.517 3.58-1.04 6.522-3.723 7.651-7.742a13.84 13.84 0 0 0 .497-3.753C20.18 7.773 21.692 5.25 22 4.009z" />
-                  </svg>
-                </motion.a>
-                <motion.a 
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors duration-200"
-                  whileHover={{ y: -3, scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="2" y="2" width="20" height="20" rx="5" />
-                    <circle cx="12" cy="12" r="4" fill="black" />
-                    <circle cx="18" cy="6" r="1.5" fill="black" />
-                  </svg>
-                </motion.a>
-                <motion.a 
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors duration-200"
-                  whileHover={{ y: -3, scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                  </svg>
-                </motion.a>
-                <motion.a 
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors duration-200"
-                  whileHover={{ y: -3, scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
-                    <polygon fill="black" points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" />
-                  </svg>
-                </motion.a>
+                <Link to="/privacy" className="text-white/40 hover:text-white/70 text-sm transition-colors">Privacy Policy</Link>
+                <Link to="/terms" className="text-white/40 hover:text-white/70 text-sm transition-colors">Terms of Service</Link>
               </div>
-            </motion.div>
+            </div>
           </div>
         </footer>
       </motion.div>
