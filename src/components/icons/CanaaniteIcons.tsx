@@ -369,6 +369,85 @@ export const CanaaniteIcons = {
       />
     </svg>
   ),
+  
+  // Wave icon for Coast program
+  Wave: () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path 
+        d="M3 10C6 10 8 8 12 8C16 8 18 10 21 10V12C18 12 16 10 12 10C8 10 6 12 3 12V10Z M3 16C6 16 8 14 12 14C16 14 18 16 21 16V18C18 18 16 16 12 16C8 16 6 18 3 18V16Z" 
+        stroke="currentColor" 
+        strokeWidth="1.5" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  
+  // Stone icon for Stone section
+  Stone: () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path 
+        d="M4 8L12 4L20 8L12 12L4 8Z M4 16L12 12L20 16L12 20L4 16Z M4 8V16 M20 8V16" 
+        stroke="currentColor" 
+        strokeWidth="1.5" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  
+  // Salt icon for Salt section
+  Salt: () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path 
+        d="M7 8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V10H7V8Z" 
+        stroke="currentColor" 
+        strokeWidth="1.5" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+      />
+      <path 
+        d="M5 10H19L18 21H6L5 10Z" 
+        stroke="currentColor" 
+        strokeWidth="1.5" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  
+  // Compass icon for Compass section
+  Compass: () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path 
+        d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" 
+        stroke="currentColor" 
+        strokeWidth="1.5" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+      />
+      <path 
+        d="M14.5 9.5L9.5 14.5 M9.5 9.5L14.5 14.5" 
+        stroke="currentColor" 
+        strokeWidth="1.5" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  
+  // Pen icon for contribution
+  Pen: () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path 
+        d="M17 3L21 7L7 21H3V17L17 3Z" 
+        stroke="currentColor" 
+        strokeWidth="1.5" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
 };
 
 export default CanaaniteIcons;

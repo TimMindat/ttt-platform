@@ -9,7 +9,7 @@ import { CanaaniteIcons } from "../../components/icons/CanaaniteIcons";
 
 // Data for navigation items
 const navItems = [
-  { name: "Coast", href: "#" },
+  { name: "Coast", href: "/coast" },
   { name: "Boat", href: "#" },
   { name: "Azure", href: "#" },
   { name: "Commons", href: "#" },
@@ -1200,7 +1200,7 @@ export const MainHomepage = (): JSX.Element => {
               <div className="col-span-1">
                 <h4 className="text-white font-semibold mb-4">Programs</h4>
                 <ul className="space-y-2">
-                  <li><Link to="/programs/coast" className="hover:text-white transition-colors">Coast</Link></li>
+                  <li><Link to="/coast" className="hover:text-white transition-colors">Coast</Link></li>
                   <li><Link to="/programs/boat" className="hover:text-white transition-colors">Boat</Link></li>
                   <li><Link to="/programs/azure" className="hover:text-white transition-colors">Azure</Link></li>
                   <li><Link to="/programs/commons" className="hover:text-white transition-colors">Commons</Link></li>

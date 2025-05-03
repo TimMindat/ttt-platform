@@ -25,13 +25,141 @@ export const ContributePage = (): JSX.Element => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [dragActive, setDragActive] = useState<boolean>(false);
   
-  // Handle file selection
+  // Define allowed file types and max size
+  const allowedFileTypes = {
+    photo: ['image/jpeg', 'image/png', 'image/gif'],
+    document: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    music: ['audio/mpeg', 'audio/wav'],
+    artwork: ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'],
+    video: ['video/mp4', 'video/quicktime'],
+    all: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'application/msword', 
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+          'audio/mpeg', 'audio/wav', 'video/mp4', 'video/quicktime', 'image/svg+xml']
+  };
+  
+  const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB in bytes
+  
+  // Handle file validation
+  const validateFile = (file: File): string | null => {
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      return `File "${file.name}" exceeds the 20MB size limit`;
+    }
+    
+    // Check file type
+    const fileType = contentType && contentType !== 'story' && contentType !== 'testimony' && contentType !== 'literature'
+      ? allowedFileTypes[contentType as keyof typeof allowedFileTypes] || allowedFileTypes.all
+      : allowedFileTypes.all;
+      
+    if (!fileType.includes(file.type)) {
+      return `File "${file.name}" has unsupported format. Please upload only JPG, PNG, PDF, MP3, MP4, or DOC files`;
+    }
+    
+    return null;
+  };
+  
+  // Handle file selection with validation
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const fileArray = Array.from(e.target.files);
-      setFiles(prev => [...prev, ...fileArray]);
+      const validationErrors: string[] = [];
+      const validFiles: File[] = [];
+      
+      fileArray.forEach(file => {
+        const error = validateFile(file);
+        if (error) {
+          validationErrors.push(error);
+        } else {
+          validFiles.push(file);
+        }
+      });
+      
+      if (validationErrors.length > 0) {
+        setErrors(prev => ({
+          ...prev,
+          files: validationErrors.join('. ')
+        }));
+      } else {
+        setErrors(prev => {
+          const newErrors = {...prev};
+          delete newErrors.files;
+          return newErrors;
+        });
+      }
+      
+      setFiles(prev => [...prev, ...validFiles]);
     }
+  };
+  
+  // Handle drag events
+  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+  
+  // Handle drop event
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const fileArray = Array.from(e.dataTransfer.files);
+      const validationErrors: string[] = [];
+      const validFiles: File[] = [];
+      
+      fileArray.forEach(file => {
+        const error = validateFile(file);
+        if (error) {
+          validationErrors.push(error);
+        } else {
+          validFiles.push(file);
+        }
+      });
+      
+      if (validationErrors.length > 0) {
+        setErrors(prev => ({
+          ...prev,
+          files: validationErrors.join('. ')
+        }));
+      } else {
+        setErrors(prev => {
+          const newErrors = {...prev};
+          delete newErrors.files;
+          return newErrors;
+        });
+      }
+      
+      setFiles(prev => [...prev, ...validFiles]);
+    }
+  };
+  
+  // Get file icon based on type
+  const getFileIcon = (file: File) => {
+    if (file.type.startsWith('image/')) {
+      return <CanaaniteIcons.Camera className="w-5 h-5 mr-3 text-white/70" />;
+    } else if (file.type.startsWith('audio/')) {
+      return <CanaaniteIcons.Music className="w-5 h-5 mr-3 text-white/70" />;
+    } else if (file.type.startsWith('video/')) {
+      return <CanaaniteIcons.Video className="w-5 h-5 mr-3 text-white/70" />;
+    } else {
+      return <CanaaniteIcons.Document className="w-5 h-5 mr-3 text-white/70" />;
+    }
+  };
+  
+  // Format file size
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' B';
+    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    else return (bytes / 1048576).toFixed(1) + ' MB';
   };
   
   // Remove a file from the selection
@@ -50,7 +178,7 @@ export const ContributePage = (): JSX.Element => {
     if (!email.trim()) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Email is invalid";
     
-    if (contentType !== "story" && contentType !== "testimony" && files.length === 0) {
+    if (contentType !== "story" && contentType !== "testimony" && contentType !== "literature" && files.length === 0) {
       newErrors.files = "Please upload at least one file";
     }
     
@@ -195,23 +323,48 @@ export const ContributePage = (): JSX.Element => {
             {/* File Upload */}
             <div className="mb-6">
               <label className="block text-white/80 mb-2">Upload Files</label>
-              <div className="border-2 border-dashed border-white/20 rounded-lg p-6 text-center">
+              <div 
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                  dragActive 
+                    ? "border-white/50 bg-white/5" 
+                    : "border-white/20 hover:border-white/30"
+                }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
                 <input
                   type="file"
                   id="fileUpload"
                   multiple
                   className="hidden"
                   onChange={handleFileChange}
+                  accept={contentType && contentType !== 'story' && contentType !== 'testimony' && contentType !== 'literature'
+                    ? allowedFileTypes[contentType as keyof typeof allowedFileTypes]?.join(',') 
+                    : allowedFileTypes.all.join(',')}
                 />
                 <label
                   htmlFor="fileUpload"
                   className="cursor-pointer flex flex-col items-center justify-center"
                 >
                   <CanaaniteIcons.Upload className="w-12 h-12 text-white/50 mb-4" />
-                  <p className="text-white/80 mb-2">Drag and drop files here, or click to browse</p>
+                  <p className="text-white/80 mb-2">
+                    {dragActive 
+                      ? "Drop files here to upload" 
+                      : "Drag and drop files here, or click to browse"}
+                  </p>
                   <p className="text-white/50 text-sm">
                     Supported formats: JPG, PNG, PDF, MP3, MP4, DOC (Max 20MB)
                   </p>
+                  {contentType && (
+                    <p className="text-white/70 text-sm mt-2">
+                      {contentType === 'photo' && "For photos, please upload JPG or PNG files"}
+                      {contentType === 'document' && "For documents, please upload PDF or DOC files"}
+                      {contentType === 'music' && "For music, please upload MP3 or WAV files"}
+                      {contentType === 'artwork' && "For artwork, please upload JPG, PNG, or SVG files"}
+                    </p>
+                  )}
                 </label>
               </div>
               {errors.files && <p className="text-red-400 mt-2 text-sm">{errors.files}</p>}
@@ -223,14 +376,17 @@ export const ContributePage = (): JSX.Element => {
                   <div className="space-y-2">
                     {files.map((file, index) => (
                       <div key={index} className="flex items-center justify-between bg-[#252525] rounded-lg p-3">
-                        <div className="flex items-center">
-                          <CanaaniteIcons.Document className="w-5 h-5 mr-3 text-white/70" />
-                          <span className="text-white/90 truncate max-w-xs">{file.name}</span>
+                        <div className="flex items-center overflow-hidden">
+                          {getFileIcon(file)}
+                          <div className="truncate">
+                            <span className="text-white/90 truncate block">{file.name}</span>
+                            <span className="text-white/50 text-xs">{formatFileSize(file.size)}</span>
+                          </div>
                         </div>
                         <button
                           type="button"
                           onClick={() => removeFile(index)}
-                          className="text-white/60 hover:text-white/90"
+                          className="text-white/60 hover:text-white/90 ml-3 flex-shrink-0"
                         >
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
